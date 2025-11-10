@@ -1,0 +1,124 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database (para producción)
+  db:
+    image: postgres:15-alpine
+    container_name: mark-i-db
+    environment:
+      POSTGRES_DB: obras
+      POSTGRES_USER: obras_user
+      POSTGRES_PASSWORD: obras_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - mark-i-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U obras_user -d obras"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis (para cache y Celery - Fase 2)
+  redis:
+    image: redis:7-alpine
+    container_name: mark-i-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - mark-i-network
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO (S3-compatible storage)
+  minio:
+    image: minio/minio:latest
+    container_name: mark-i-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"  # API
+      - "9001:9001"  # Console
+    networks:
+      - mark-i-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # Backend API (FastAPI)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../docker/Dockerfile.backend
+    container_name: mark-i-backend
+    environment:
+      ENVIRONMENT: development
+      DATABASE_URL: postgresql://obras_user:obras_pass@db:5432/obras
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: obras-facturas
+      MINIO_SECURE: "false"
+      STORAGE_TYPE: minio
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - ./uploads:/app/uploads
+    ports:
+      - "8000:8000"
+    networks:
+      - mark-i-network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Celery Worker (para tareas asíncronas - Fase 3)
+  # celery:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: ../docker/Dockerfile.backend
+  #   container_name: mark-i-celery
+  #   command: celery -A app.celery worker --loglevel=info
+  #   environment:
+  #     DATABASE_URL: postgresql://obras_user:obras_pass@db:5432/obras
+  #     CELERY_BROKER_URL: redis://redis:6379/0
+  #     CELERY_RESULT_BACKEND: redis://redis:6379/1
+  #   depends_on:
+  #     - db
+  #     - redis
+  #   volumes:
+  #     - ./backend:/app
+  #   networks:
+  #     - mark-i-network
+
+volumes:
+  postgres_data:
+    name: mark-i-postgres-data
+  redis_data:
+    name: mark-i-redis-data
+  minio_data:
+    name: mark-i-minio-data
+
+networks:
+  mark-i-network:
+    name: mark-i-network
+    driver: bridge

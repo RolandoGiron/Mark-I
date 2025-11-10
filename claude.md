@@ -3,6 +3,7 @@
 ## 📋 Resumen Ejecutivo
 
 Sistema integral para gestión de proyectos de construcción con enfoque en control financiero y operativo. Diseñado para empresas constructoras que necesitan:
+
 - Control de costos en tiempo real por proyecto
 - Captura de datos desde campo vía Telegram
 - Dashboards intuitivos para toma de decisiones
@@ -11,9 +12,11 @@ Sistema integral para gestión de proyectos de construcción con enfoque en cont
 ## 🎯 Objetivos del Sistema
 
 ### Principal
+
 Centralizar y automatizar el control financiero y operativo de proyectos de construcción, eliminando la pérdida de información y mejorando la rentabilidad.
 
 ### Específicos
+
 1. **Control Financiero:** Tracking en tiempo real de gastos vs. presupuesto
 2. **Eficiencia Operativa:** Captura de datos desde campo sin fricción
 3. **Visibilidad Total:** Dashboards con KPIs críticos del negocio
@@ -22,9 +25,37 @@ Centralizar y automatizar el control financiero y operativo de proyectos de cons
 
 ## 🏗️ Arquitectura del Sistema
 
-### Diagrama de Arquitectura General
+### 🎯 Decisiones Arquitectónicas Tomadas (Nov 2025)
 
+**Base de Datos:**
+- **Desarrollo:** SQLite (simple, sin instalación, perfecto para MVP)
+- **Producción:** PostgreSQL (migración planificada cuando sea necesario)
+- **ORM:** SQLAlchemy con soporte para ambos
+
+**Patrón de Arquitectura Backend:**
+- **Estructura Modular por Dominio** (DDD-inspired)
+- Cada módulo de negocio (proyectos, costos, tareas) contiene:
+  - `models.py`: Modelos SQLAlchemy
+  - `schemas.py`: Pydantic schemas (validación)
+  - `routes.py`: Endpoints FastAPI
+  - `services.py`: Lógica de negocio
+  - `repository.py`: Acceso a datos
+- Ventajas: Alta cohesión, bajo acoplamiento, fácil de mantener y escalar
+
+**Storage de Archivos:**
+- **Desarrollo:** Sistema de archivos local (`uploads/`)
+- **Producción:** MinIO (S3-compatible)
+- **Implementación:** Abstracción con interface común para intercambiar fácilmente
+
+**Scope MVP Fase 1:**
+- ✅ Gestión de Proyectos (CRUD completo)
+- ✅ Registro de Gastos (con upload de facturas, sin OCR inicial)
+- ⏸️ Sistema de Tareas (Fase 2)
+- ⏸️ Registro de Horas (Fase 2)
+
+### Diagrama de Arquitectura General
 ```mermaid
+
 graph TB
     subgraph "🚶 Usuarios"
         Admin[👔 Administrador/Gerente]
@@ -68,9 +99,14 @@ graph TB
     style Bot fill:#99ff99
 ```
 
+```
+
+```
+
 ## 📊 KPIs y Dashboards Críticos
 
 ### 1. Dashboard Ejecutivo (Vista Principal)
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │  RESUMEN HOY                                        │
@@ -85,6 +121,7 @@ graph TB
 ```
 
 **KPIs Principales:**
+
 - **Flujo de Caja Diario:** Ingresos - Egresos del día
 - **Burn Rate por Proyecto:** Velocidad de gasto vs. tiempo restante
 - **ROI por Proyecto:** (Ganancia / Inversión) × 100
@@ -92,6 +129,7 @@ graph TB
 - **Productividad Laboral:** Horas trabajadas vs. Horas presupuestadas
 
 ### 2. Dashboard de Control de Costos
+
 - **Análisis de Varianza:** Comparación presupuesto vs. real con semáforo
 - **Matriz de Gastos:** Heatmap de gastos por categoría y proyecto
 - **Proyección de Costos:** Estimación de costo final basado en tendencia actual
@@ -99,6 +137,7 @@ graph TB
 - **Costo de Mano de Obra:** Por proyecto y trabajador
 
 ### 3. Dashboard Operativo
+
 - **Pipeline de Ventas:** Valor total en cada etapa del embudo
 - **Utilización de Personal:** % de tiempo productivo por empleado
 - **Velocidad de Proyectos:** Tiempo promedio por fase
@@ -119,7 +158,7 @@ erDiagram
     PERSONAL ||--o{ REGISTRO_HORAS : trabaja
     TAREA ||--o{ ASIGNACION : requiere
     PROVEEDOR ||--o{ COSTO : suministra
-    
+  
     PROYECTO {
         uuid id PK
         string codigo UK
@@ -132,7 +171,7 @@ erDiagram
         enum estado
         json metadata
     }
-    
+  
     TAREA {
         uuid id PK
         uuid proyecto_id FK
@@ -145,7 +184,7 @@ erDiagram
         timestamp creada_en
         timestamp actualizada_en
     }
-    
+  
     COSTO {
         uuid id PK
         uuid proyecto_id FK
@@ -159,7 +198,7 @@ erDiagram
         boolean validado
         string metodo_captura
     }
-    
+  
     REGISTRO_HORAS {
         uuid id PK
         uuid proyecto_id FK
@@ -170,7 +209,7 @@ erDiagram
         timestamp registrado_en
         uuid registrado_por FK
     }
-    
+  
     PRESUPUESTO_LINEA {
         uuid id PK
         uuid proyecto_id FK
@@ -297,6 +336,7 @@ sequenceDiagram
 ## 🚀 Plan de Implementación (MVP)
 
 ### Fase 1: Fundación (2 semanas)
+
 - [ ] Setup del repositorio y CI/CD
 - [ ] Configuración de base de datos (PostgreSQL o SQLite para desarrollo)
 - [ ] API básica con FastAPI y autenticación JWT
@@ -304,6 +344,7 @@ sequenceDiagram
 - [ ] Configuración de MinIO para almacenamiento local
 
 ### Fase 2: Core Features (3 semanas)
+
 - [ ] CRUD de Proyectos y Presupuestos
 - [ ] Sistema de captura de gastos manual
 - [ ] Dashboard básico de costos
@@ -312,12 +353,14 @@ sequenceDiagram
 - [ ] Consulta de tareas diarias vía Telegram
 
 ### Fase 3: Inteligencia (2 semanas)
+
 - [ ] Integración Tesseract/EasyOCR para facturas
 - [ ] Whisper para transcripción de voz
 - [ ] Sistema de alertas automáticas
 - [ ] Reportes PDF exportables con ReportLab
 
 ### Fase 4: Optimización (1 semana)
+
 - [ ] Cache con Redis
 - [ ] Optimización de queries
 - [ ] PWA para acceso móvil
@@ -326,6 +369,7 @@ sequenceDiagram
 ## 🛠️ Stack Tecnológico Recomendado
 
 ### Backend (Python)
+
 ```yaml
 Core:
   - Framework: FastAPI o Django REST Framework
@@ -343,6 +387,7 @@ Librerías Clave:
 ```
 
 ### Servicios Open Source / Locales
+
 ```yaml
 OCR:
   - Tesseract OCR (más maduro, mejor para facturas)
@@ -366,6 +411,7 @@ Base de Datos Alternativas:
 ```
 
 ### Frontend
+
 ```yaml
 Framework: React 18 + Vite
 State Management: Zustand (simple) o Redux Toolkit
@@ -379,6 +425,7 @@ PWA: Vite PWA Plugin
 ```
 
 ### Infraestructura para Deployment
+
 ```yaml
 Opción 1 - Servidor Local:
   - Reverse Proxy: nginx o Caddy (auto-HTTPS)
@@ -405,6 +452,7 @@ Opción 3 - Híbrido (Recomendado):
 ## 📱 Comandos del Bot de Telegram
 
 ### Comandos Básicos
+
 ```
 /start - Iniciar y registrar usuario
 /proyecto - Seleccionar proyecto activo
@@ -420,6 +468,7 @@ Opción 3 - Híbrido (Recomendado):
 ### Flujo de Interacción Optimizado
 
 #### Consulta de Tareas Diarias
+
 ```
 👷: /tareas
 🤖: 📋 Tareas para hoy (26 Oct):
@@ -436,6 +485,7 @@ Opción 3 - Híbrido (Recomendado):
 ```
 
 #### Reporte de Gasto
+
 ```
 👷: /gasto
 🤖: ¿Cómo quieres reportar el gasto?
@@ -448,15 +498,16 @@ Opción 3 - Híbrido (Recomendado):
 🤖: Procesando... 
     Detecté: $1,250.00 - Home Depot
     Proyecto: Reforma Cocina Casa #23
-    
+  
     [✅ Confirmar] [✏️ Editar] [❌ Cancelar]
 ```
 
 #### Registro de Horas Trabajadas
+
 ```
 👔: /horas
 🤖: Selecciona el trabajador:
-    
+  
     [👷 Juan Pérez]
     [👷 María García] 
     [👷 Pedro López]
@@ -464,14 +515,14 @@ Opción 3 - Híbrido (Recomendado):
 
 👔: [Juan Pérez]
 🤖: ¿En qué proyecto trabajó?
-    
+  
     [🏗️ Casa #23]
     [🏗️ Local Centro]
     [🏗️ Oficina Norte]
 
 👔: [Casa #23]
 🤖: ¿Cuántas horas?
-    
+  
     [4 horas] [6 horas] [8 horas] 
     [10 horas] [Otra cantidad]
 
@@ -480,16 +531,17 @@ Opción 3 - Híbrido (Recomendado):
     Juan Pérez - 8 horas
     Proyecto: Casa #23
     Fecha: 26 Oct 2025
-    
+  
     💰 Costo mano obra: $160
     📊 Total horas proyecto: 156/200 (78%)
 ```
 
 #### Agregar Nueva Tarea
+
 ```
 👷: /nueva_tarea
 🤖: ¿Para qué proyecto?
-    
+  
     [🏗️ Casa #23]
     [🏗️ Local Centro]
     [🏗️ Ver todos...]
@@ -499,7 +551,7 @@ Opción 3 - Híbrido (Recomendado):
 
 👷: Instalar griferías en baños principales
 🤖: ¿Cuándo debe realizarse?
-    
+  
     [📅 Hoy]
     [📅 Mañana]
     [📅 Esta semana]
@@ -507,7 +559,7 @@ Opción 3 - Híbrido (Recomendado):
 
 👷: [Mañana]
 🤖: ¿Prioridad?
-    
+  
     [🔴 Alta] [🟡 Media] [🟢 Baja]
 
 👷: [🔴 Alta]
@@ -522,17 +574,17 @@ Opción 3 - Híbrido (Recomendado):
 
 ### PostgreSQL vs SQLite vs MariaDB
 
-| Característica | PostgreSQL | SQLite | MariaDB |
-|---------------|------------|---------|---------|
-| **Instalación** | Requiere servidor | Un archivo | Requiere servidor |
-| **Concurrencia** | Excelente | Limitada (escrituras) | Muy buena |
-| **Tamaño máximo** | Sin límite | 281 TB | Sin límite |
-| **RAM requerida** | ~256MB mínimo | Mínima (~10MB) | ~256MB mínimo |
-| **Backup** | pg_dump, streaming | Copiar archivo | mysqldump |
-| **JSON nativo** | ✅ Excelente | ✅ Básico | ✅ Bueno |
-| **Full-text search** | ✅ Potente | ✅ Básico | ✅ Bueno |
-| **Replicación** | ✅ Nativa | ❌ Manual | ✅ Nativa |
-| **Ideal para** | Producción | MVP/Desarrollo | Producción |
+| Característica            | PostgreSQL         | SQLite                | MariaDB           |
+| -------------------------- | ------------------ | --------------------- | ----------------- |
+| **Instalación**     | Requiere servidor  | Un archivo            | Requiere servidor |
+| **Concurrencia**     | Excelente          | Limitada (escrituras) | Muy buena         |
+| **Tamaño máximo**  | Sin límite        | 281 TB                | Sin límite       |
+| **RAM requerida**    | ~256MB mínimo     | Mínima (~10MB)       | ~256MB mínimo    |
+| **Backup**           | pg_dump, streaming | Copiar archivo        | mysqldump         |
+| **JSON nativo**      | ✅ Excelente       | ✅ Básico            | ✅ Bueno          |
+| **Full-text search** | ✅ Potente         | ✅ Básico            | ✅ Bueno          |
+| **Replicación**     | ✅ Nativa          | ❌ Manual             | ✅ Nativa         |
+| **Ideal para**       | Producción        | MVP/Desarrollo        | Producción       |
 
 ### Recomendación por Etapa
 
@@ -609,6 +661,7 @@ def get_sqlite_connection():
 ## 💰 Consideraciones de Costos y Recursos
 
 ### Opción 1: Servidor Local (Más económico a largo plazo)
+
 ```yaml
 Hardware Mínimo:
   - CPU: 4 cores
@@ -631,6 +684,7 @@ Ventajas:
 ```
 
 ### Opción 2: VPS Económico
+
 ```yaml
 Proveedores y Precios:
   DigitalOcean:
@@ -656,7 +710,8 @@ Limitaciones:
   - Necesitas gestionar backups
 ```
 
-### Opción 3: Híbrido (Recomendado) 
+### Opción 3: Híbrido (Recomendado)
+
 ```yaml
 Arquitectura:
   - Frontend: Vercel/Netlify (gratis hasta 100GB bandwidth)
@@ -678,6 +733,7 @@ Ventajas:
 ```
 
 ### Recursos Gratuitos Disponibles
+
 ```yaml
 Estudiantes/Startups:
   - GitHub Student Pack: $200 créditos DigitalOcean
@@ -704,11 +760,13 @@ Servicios Always Free:
 ## 📈 Métricas de Éxito
 
 ### Técnicas
+
 - Tiempo de respuesta API < 200ms (p95)
 - Disponibilidad > 99.9%
 - Procesamiento OCR > 95% precisión
 
 ### Negocio
+
 - Reducción 30% en tiempo de captura de datos
 - Mejora 25% en margen de proyectos
 - 100% trazabilidad de gastos
@@ -725,6 +783,7 @@ Servicios Always Free:
 ## 📝 Notas de Implementación
 
 ### Manejo de Estados y Categorías
+
 ```python
 # Estados de Proyecto
 class EstadoProyecto(Enum):
@@ -761,6 +820,7 @@ class CategoriaGasto(Enum):
 ```
 
 ### Webhooks de Telegram con FastAPI
+
 ```python
 from fastapi import FastAPI, HTTPException
 from telegram import Update
@@ -776,10 +836,10 @@ async def telegram_webhook(update: dict):
     # Verificar firma del webhook (opcional pero recomendado)
     if not verify_telegram_signature(update):
         raise HTTPException(status_code=401, detail="Unauthorized")
-    
+  
     # Convertir a objeto Update de python-telegram-bot
     telegram_update = Update.de_json(update, bot_app.bot)
-    
+  
     # Procesar según tipo de mensaje
     if telegram_update.message:
         if telegram_update.message.photo:
@@ -790,7 +850,7 @@ async def telegram_webhook(update: dict):
             await process_text_command(telegram_update)
     elif telegram_update.callback_query:
         await process_callback_query(telegram_update)
-    
+  
     return {"ok": True}
 
 # Procesamiento de imagen con OCR local
@@ -799,12 +859,12 @@ async def process_expense_photo(update: Update):
     # Descargar imagen
     file = await update.message.photo[-1].get_file()
     image_bytes = await file.download_as_bytearray()
-    
+  
     # Guardar temporalmente
     temp_path = f"/tmp/{update.message.message_id}.jpg"
     with open(temp_path, "wb") as f:
         f.write(image_bytes)
-    
+  
     # Procesar con OCR
     if OCR_ENGINE == "tesseract":
         import pytesseract
@@ -814,10 +874,10 @@ async def process_expense_photo(update: Update):
         reader = easyocr.Reader(['es', 'en'])
         result = reader.readtext(temp_path)
         text = ' '.join([item[1] for item in result])
-    
+  
     # Extraer datos de la factura
     expense_data = parse_expense_from_text(text)
-    
+  
     # Confirmar con el usuario
     keyboard = [
         [InlineKeyboardButton("✅ Confirmar", callback_data=f"confirm_expense_{update.message.message_id}")],
@@ -825,7 +885,7 @@ async def process_expense_photo(update: Update):
         [InlineKeyboardButton("❌ Cancelar", callback_data="cancel_expense")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+  
     await update.message.reply_text(
         f"Detecté:\n"
         f"💰 Monto: ${expense_data['amount']}\n"
@@ -841,21 +901,21 @@ async def process_voice_update(update: Update):
     # Descargar audio
     file = await update.message.voice.get_file()
     audio_bytes = await file.download_as_bytearray()
-    
+  
     # Guardar temporalmente
     temp_path = f"/tmp/{update.message.message_id}.ogg"
     with open(temp_path, "wb") as f:
         f.write(audio_bytes)
-    
+  
     # Transcribir con Whisper
     import whisper
     model = whisper.load_model(WHISPER_MODEL)
     result = model.transcribe(temp_path, language="es")
     text = result["text"]
-    
+  
     # Analizar intención y extraer información
     intent_data = analyze_voice_intent(text)
-    
+  
     # Responder según la intención detectada
     if intent_data["intent"] == "task_complete":
         await mark_task_complete(update, intent_data)
@@ -869,6 +929,7 @@ async def process_voice_update(update: Update):
 ```
 
 ### Configuración de MinIO para almacenamiento
+
 ```python
 from minio import Minio
 from minio.error import S3Error
@@ -912,6 +973,7 @@ async def upload_to_minio(file_path: str, object_name: str):
 ```
 
 ### Script de Setup Inicial
+
 ```bash
 #!/bin/bash
 # setup.sh - Script de configuración inicial
@@ -950,6 +1012,7 @@ echo "✅ Setup completo! Revisa el archivo .env.example"
 ## 🤝 Contribución y Soporte
 
 ### Estructura de Carpetas
+
 ```
 proyecto-obras/
 ├── backend/
@@ -976,6 +1039,7 @@ proyecto-obras/
 ```
 
 ### Variables de Entorno Requeridas
+
 ```env
 # Database
 DATABASE_URL=postgresql://user:pass@localhost:5432/obras
@@ -1018,6 +1082,7 @@ MAX_FILE_SIZE=10485760  # 10MB en bytes
 ```
 
 ### Configuración Docker Compose para Desarrollo
+
 ```yaml
 version: '3.8'
 
@@ -1098,6 +1163,7 @@ volumes:
 ## 📚 Referencias y Recursos
 
 ### Documentación de Herramientas Open Source
+
 - [Telegram Bot API](https://core.telegram.org/bots/api)
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
 - [Tesseract OCR](https://github.com/tesseract-ocr/tesseract)
@@ -1108,18 +1174,20 @@ volumes:
 - [SQLite When to Use](https://www.sqlite.org/whentouse.html)
 
 ### Recursos de Deployment
+
 - [DigitalOcean $200 Credit](https://www.digitalocean.com/github-students)
 - [Vultr Free Trial](https://www.vultr.com/promo/)
 - [Caddy Server (Auto-HTTPS)](https://caddyserver.com/)
 - [DuckDNS (Dynamic DNS)](https://www.duckdns.org/)
 
 ### Tutoriales Recomendados
+
 - [Deploy FastAPI with Docker](https://fastapi.tiangolo.com/deployment/docker/)
 - [Self-hosting MinIO](https://min.io/docs/minio/linux/operations/install-deploy-manage/deploy-minio-single-node-single-drive.html)
 - [Whisper API Local Setup](https://github.com/ahmetoner/whisper-asr-webservice)
 
 ---
 
-**Última actualización:** Octubre 2025  
-**Versión:** 2.0.0  
+**Última actualización:** Octubre 2025
+**Versión:** 2.0.0
 **Autor:** Sistema de Gestión de Obras - Equipo de Desarrollo
