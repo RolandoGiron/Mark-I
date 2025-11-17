@@ -28,11 +28,13 @@ Centralizar y automatizar el control financiero y operativo de proyectos de cons
 ### 🎯 Decisiones Arquitectónicas Tomadas (Nov 2025)
 
 **Base de Datos:**
+
 - **Desarrollo:** SQLite (simple, sin instalación, perfecto para MVP)
 - **Producción:** PostgreSQL (migración planificada cuando sea necesario)
 - **ORM:** SQLAlchemy con soporte para ambos
 
 **Patrón de Arquitectura Backend:**
+
 - **Estructura Modular por Dominio** (DDD-inspired)
 - Cada módulo de negocio (proyectos, costos, tareas) contiene:
   - `models.py`: Modelos SQLAlchemy
@@ -43,17 +45,20 @@ Centralizar y automatizar el control financiero y operativo de proyectos de cons
 - Ventajas: Alta cohesión, bajo acoplamiento, fácil de mantener y escalar
 
 **Storage de Archivos:**
+
 - **Desarrollo:** Sistema de archivos local (`uploads/`)
 - **Producción:** MinIO (S3-compatible)
 - **Implementación:** Abstracción con interface común para intercambiar fácilmente
 
 **Scope MVP Fase 1:**
+
 - ✅ Gestión de Proyectos (CRUD completo)
 - ✅ Registro de Gastos (con upload de facturas, sin OCR inicial)
 - ⏸️ Sistema de Tareas (Fase 2)
 - ⏸️ Registro de Horas (Fase 2)
 
 ### Diagrama de Arquitectura General
+
 ```mermaid
 
 graph TB
